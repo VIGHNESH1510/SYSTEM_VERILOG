@@ -18,6 +18,7 @@ module packed_struct;
     svar = '{addr:8'd165, id:3, key:554}; 
     $display("%p", svar);
   end
+endmodule
 
   /*
   OUTPUT
