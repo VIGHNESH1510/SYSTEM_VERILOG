@@ -35,11 +35,7 @@ module tb;
     sc1.tc.data = 4'd12;
     
     
-    sc2 = new sc1; // shallow copy , Method 1
-   
-//      shallow copy , Method 2
-//     sc2 = new();
-//     sc2 = sc1;
+    sc2 = new sc1; // shallow copy 
     
     $display("object sc1, Before changes");
     sc1.display();
