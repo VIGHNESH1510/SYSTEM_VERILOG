@@ -1,72 +1,125 @@
 class Randomize;
-  rand logic [3:0]data;
-  bit data_mode;
+
+  rand logic [3:0] data;
   bit parity;
-  
-  constraint data_cons{ data inside {[14:15]};}
-  
- 	// Controls constraint behavior before randomization
-	// Enables or disables constraints based on mode
-  function void pre_randomize();
-    $display("Pre Randomize()");
-    
-    if(data_mode) begin
-      $display("data constraint Enabled");
+  int max_value;
+  bit constraint_mode_en;
+  bit rand_mode_en;
+
+  constraint data_cons
+  {
+    data < max_value;
+  }
+
+  function void pre_randomize(); // Used to prepare variables and constraints before randomization
+
+
+    $display("\nPre Randomize()");
+    max_value = 10;
+    $display("max_value = %0d", max_value);
+
+    if(constraint_mode_en) begin
+      $display("Constraint Enabled");
       data_cons.constraint_mode(1);
     end
+
     else begin
-      $display("data constraint Disabled");
+      $display("Constraint Disabled");
       data_cons.constraint_mode(0);
+
     end
-      
+
+    if(rand_mode_en) begin
+      $display("data randomization Enabled");
+      data.rand_mode(1);
+
+    end
+
+    else begin
+      $display("data randomization Disabled");
+      data.rand_mode(0);
+
+    end
+
   endfunction
-  
-  function void post_randomize();  // doesn't executes if the randomization fail
+
+
+  function void post_randomize(); // Used to calculate or process values after randomization
+
     $display("Post Randomize()");
     parity = ^data;
-    $display("Parity =%b(%b)",parity,data);
+    $display("Generated parity = %0b data = %b",
+              parity, data);
+
   endfunction
-  
+
 endclass
 
+
+
 module tb;
-  
+
   Randomize rd;
+
   initial begin
-    
+
     rd = new();
-    rd.data_mode =1;
+
+
+    rd.constraint_mode_en = 1;
+    rd.rand_mode_en       = 1;
+
     if(rd.randomize())
-      $display("Randomization passed, data =%0d", rd.data);
-    
+      $display("CASE 1 : data = %0d", rd.data);
     else
-      $display("Randomization failed");
-    
-    $display();
-    
-    rd.data_mode =0;
-     if(rd.randomize())
-      $display("Randomization passed, data =%0d", rd.data);
-    
+      $display("Randomization Failed");
+
+
+
+    rd.constraint_mode_en = 0;
+    rd.rand_mode_en       = 1;
+
+    if(rd.randomize())
+      $display("CASE 2 : data = %0d", rd.data);
     else
-      $display("Randomization failed");
-    
-    
+      $display("Randomization Failed");
+
+
+    rd.data = 4'b0010;
+    rd.constraint_mode_en = 1;
+    rd.rand_mode_en       = 0;
+
+    if(rd.randomize())
+      $display("CASE 3 : data = %0d", rd.data);
+    else
+      $display("Randomization Failed");
+
   end
-  
+
 endmodule
 
 /*
-OUTPUT
 Pre Randomize()
-data constraint Enabled
+max_value = 10
+Constraint Enabled
+data randomization Enabled
 Post Randomize()
-Parity =0(1111)
-Randomization passed, data =15
- 
+Generated parity = 0 data = 0000
+CASE 1 : data = 0
+
 Pre Randomize()
-data constraint Disabled
+max_value = 10
+Constraint Disabled
+data randomization Enabled
 Post Randomize()
-Parity =1(1000)
-Randomization passed, data =8
+Generated parity = 1 data = 1000
+CASE 2 : data = 8
+
+Pre Randomize()
+max_value = 10
+Constraint Enabled
+data randomization Disabled
+Post Randomize()
+Generated parity = 1 data = 0010
+CASE 3 : data = 2
 */
